@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*{
+  font-family: "Poppins", sans-serif;
+}
+
+.main__wrapper{
+  /* background-image: url(/images/img1.jpg); */
+  background-repeat: no-repeat;
+  background-position: top;
+  background-size: cover;
+  opacity: 0.9;
+}
