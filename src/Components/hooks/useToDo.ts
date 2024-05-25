@@ -9,8 +9,16 @@ export interface IToDo {
 }
 export default function UseToDo() {
   const [todos, setTodos] = useState<IToDo[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const handleClose = () => setModalOpen(false);
+  const handleOpen = () => setModalOpen(!modalOpen);
   const [error, setError] = useState<string | null>(null);
   const [postData, setPostData] = useState({
+    todoName: "",
+    description: "",
+  });
+  
+  const [editData, setEditData] = useState({
     todoName: "",
     description: "",
   });
@@ -47,11 +55,35 @@ export default function UseToDo() {
     
   };
 
+  const editTodo = async () => {
+    // e.preventDefault();
+    setModalOpen(!modalOpen);
+    try {
+      await axios.put(`${API}`, editData);
+      getTodos();
+    } catch (err) {
+      setError("Failed to edit todo");
+    }
+  };
+
+  const deleteTodo = async (id: number) => {
+    try {
+      await axios.delete(`${API}/?id=${id}`);
+      setTodos(todos.filter((todo) => todo.id !== id));
+    } catch (err) {
+      setError("Failed to delete todo");
+    }
+  };
+
   const handleChange = (e: any) => {
     const { name, value } = e.target;
     setPostData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const editHandler = (e: any) => {
+    const { value, name } = e.target;
+    setEditData((prev) => ({ ...prev, [name]: value }));
+  };
 
   return {
     todos,
@@ -59,6 +91,13 @@ export default function UseToDo() {
     postData,
     setPostData,
     addTodo,
+    editTodo,
+    modalOpen,
+    deleteTodo,
     handleChange,
+    setModalOpen,
+    handleClose,
+    editHandler,
+    handleOpen
   };
 }
