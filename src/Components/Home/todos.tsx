@@ -5,8 +5,14 @@ import { IToDo } from "../hooks/useToDo";
 
 export default function Todos({
   todos,
+  deleteTodo,
+  editTodo,
+  handleOpen,
 }: {
   todos: IToDo[];
+  deleteTodo: (id: number) => void;
+  editTodo: (id: number) => void;
+  handleOpen: () => void;
 }) {
   return (
     <>
@@ -29,12 +35,14 @@ export default function Todos({
               </div>
               <div className="flex gap-4">
                 <button
+                  onClick={handleOpen}
                   type="submit"
                   className="bg-[#27739f] text-3xl hover:bg-[#406d88] rounded-md text-[whitesmoke] p-2 active:scale-90 max-sm:w-full flex justify-center"
                 >
                   <EditIcon />
                 </button>
                 <button
+                  onClick={() => deleteTodo(todo.id)}
                   type="submit"
                   className="bg-[#da3434] text-3xl hover:bg-[#ba4141] rounded-md text-[whitesmoke] p-2 active:scale-90 max-sm:w-full flex justify-center"
                 >
