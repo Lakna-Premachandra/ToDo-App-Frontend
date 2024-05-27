@@ -1,5 +1,7 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent, FormEvent } from "react";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export interface IToDo {
   id?: number;
@@ -11,20 +13,28 @@ export default function UseToDo() {
   const [todos, setTodos] = useState<IToDo[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const handleClose = () => setModalOpen(false);
-  const handleOpen = () => setModalOpen(!modalOpen);
-  const [error, setError] = useState<string | null>(null);
+  const handleOpen = (todo: IToDo) => {
+    setModalOpen(true);
+    setEditData({
+      id: todo.id,
+      todoName: todo.todoName,
+      description: todo.description,
+    });
+  };
+  const [error, setError] = useState<boolean | null>(false);
   const [postData, setPostData] = useState({
     todoName: "",
     description: "",
   });
-  
-  const [editData, setEditData] = useState({
+
+  const [editData, setEditData] = useState<IToDo>({
+    id: 0,
     todoName: "",
     description: "",
+    isCompleted: false,
   });
 
   const API = "https://localhost:7065/api/Todos";
-
 
   useEffect(() => {
     getTodos();
@@ -35,34 +45,42 @@ export default function UseToDo() {
       const { data } = await axios.get(API);
       setTodos(data);
     } catch (err) {
-      setError("Failed to get todos");
+      console.error(err);
     }
   };
 
-  const addTodo = async (e: any) => {
+  const addTodo = async (e: FormEvent) => {
     e.preventDefault();
-    try {
-       await axios.post(API, postData);
-       console.log(postData);
-    } catch (err) {
-      setError("Failed to add todo");
+    if (postData.todoName !== "" && postData.description !== "") {
+      try {
+        await axios.post(API, postData);
+        setPostData({
+          todoName: "",
+          description: ""
+        });
+        toast.success('Todo added successfully!');
+        getTodos();
+      } catch (err) {
+        console.error("Error posting data:", err);
+      }
+    } else {
+      setError(true);
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
     }
-    setPostData({
-      todoName: "",
-      description: "",
-    });
-    getTodos();
-    
   };
 
-  const editTodo = async () => {
-    // e.preventDefault();
+  const editTodo = async (e: FormEvent) => {
+    e.preventDefault();
     setModalOpen(!modalOpen);
     try {
       await axios.put(`${API}`, editData);
+      toast.success('Todo updated successfully!');
       getTodos();
     } catch (err) {
-      setError("Failed to edit todo");
+      console.error(err);
+      toast.error('Failed to update todo.');
     }
   };
 
@@ -70,17 +88,28 @@ export default function UseToDo() {
     try {
       await axios.delete(`${API}/?id=${id}`);
       setTodos(todos.filter((todo) => todo.id !== id));
+      toast.success('Todo deleted successfully!');
     } catch (err) {
-      setError("Failed to delete todo");
+      console.error(err);
+      toast.error('Failed to delete todo.');
     }
   };
 
-  const handleChange = (e: any) => {
+  const editComplete = async (id: number, currentStatus: boolean) => {
+    try {
+      await axios.put(`${API}/${id}`, { isCompleted: !currentStatus });
+      getTodos();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setPostData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const editHandler = (e: any) => {
+  const editHandler = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { value, name } = e.target;
     setEditData((prev) => ({ ...prev, [name]: value }));
   };
@@ -89,15 +118,15 @@ export default function UseToDo() {
     todos,
     error,
     postData,
-    setPostData,
     addTodo,
     editTodo,
     modalOpen,
     deleteTodo,
     handleChange,
-    setModalOpen,
     handleClose,
     editHandler,
-    handleOpen
+    handleOpen,
+    editData,
+    editComplete,
   };
 }
